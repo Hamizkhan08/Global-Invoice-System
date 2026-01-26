@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS invoices (
   fare_amount DECIMAL(10,2) NOT NULL,
   toll_amount DECIMAL(10,2) DEFAULT 0,
   total_amount DECIMAL(10,2) NOT NULL,
+  stops JSONB DEFAULT '[]'::jsonb, -- Array of intermediate stops
+  additional_charges JSONB DEFAULT '[]'::jsonb, -- Array of {type, amount}
   payment_mode TEXT CHECK (payment_mode IN ('cash', 'upi', 'bank')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()

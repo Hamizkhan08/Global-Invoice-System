@@ -1,87 +1,141 @@
 import { Invoice } from '@/types/invoice';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
-export async function generatePDF(invoice: Invoice): Promise<void> {
-  // Dynamically import html2pdf to avoid SSR issues
-  const html2pdf = (await import('html2pdf.js')).default;
-  
-  const element = document.getElementById('invoice-template');
-  
-  if (!element) {
-    throw new Error('Invoice template not found');
-  }
-
+// Helper to create proper filename
+function createFilename(invoice: Invoice, extension: string = 'pdf'): string {
   const invoiceNumber = invoice.invoice_number?.toString().padStart(4, '0') || 'draft';
   // Sanitize customer name for filename (remove special chars, replace spaces with underscore)
   const customerName = invoice.customer_name
     .replace(/[^a-zA-Z0-9\s]/g, '')
     .replace(/\s+/g, '_')
     .substring(0, 30); // Limit length
-  const filename = `${customerName}_invoice_${invoiceNumber}.pdf`;
-
-  const opt = {
-    margin: 0,
-    filename: filename,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { 
-      scale: 2,
-      useCORS: true,
-      letterRendering: true,
-    },
-    jsPDF: { 
-      unit: 'mm' as const, 
-      format: 'a4' as const, 
-      orientation: 'portrait' as const 
-    },
-  };
-
-  // Generate PDF blob and manually trigger download with correct filename
-  const pdfBlob = await html2pdf().set(opt).from(element).outputPdf('blob');
-  
-  // Create download link and trigger download
-  const url = URL.createObjectURL(pdfBlob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  return `${customerName}_invoice_${invoiceNumber}.${extension}`;
 }
 
-export async function generatePDFBlob(invoice: Invoice): Promise<{blob: Blob, filename: string}> {
-  const html2pdf = (await import('html2pdf.js')).default;
-  
+// Generate and download invoice as PDF (Manual html2canvas + jsPDF + FileSaver)
+export async function generatePDF(invoice: Invoice): Promise<void> {
   const element = document.getElementById('invoice-template');
   
   if (!element) {
     throw new Error('Invoice template not found');
   }
 
-  const invoiceNumber = invoice.invoice_number?.toString().padStart(4, '0') || 'draft';
-  // Sanitize customer name for filename (remove special chars, replace spaces with underscore)
-  const customerName = invoice.customer_name
-    .replace(/[^a-zA-Z0-9\s]/g, '')
-    .replace(/\s+/g, '_')
-    .substring(0, 30); // Limit length
-  const filename = `${customerName}_invoice_${invoiceNumber}.pdf`;
+  const filename = createFilename(invoice, 'pdf');
 
-  const opt = {
-    margin: 0,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { 
+  try {
+    // 1. Convert HTML to Canvas
+    const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
-      letterRendering: true,
-    },
-    jsPDF: { 
-      unit: 'mm' as const, 
-      format: 'a4' as const, 
-      orientation: 'portrait' as const 
-    },
-  };
+      logging: false,
+      backgroundColor: '#ffffff',
+      // Ensure element is visible during capture
+      onclone: (clonedDoc) => {
+        const clonedElement = clonedDoc.getElementById('invoice-template');
+        if (clonedElement) {
+          clonedElement.style.visibility = 'visible';
+          // Also check parent
+          const parent = clonedElement.parentElement;
+          if (parent) parent.style.visibility = 'visible';
+        }
+      }
+    });
 
-  const blob = await html2pdf().set(opt).from(element).outputPdf('blob');
-  return { blob, filename };
+    // 2. Calculate dimensions to fit A4
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // 3. Create PDF
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+    // 4. Add image to PDF
+    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+
+    // 5. Output as Blob and use FileSaver (Most robust method)
+    const blob = pdf.output('blob');
+    saveAs(blob, filename);
+
+  } catch (error) {
+    console.error('PDF Generation Error:', error);
+    alert('Failed to generate PDF. Please try again.');
+    throw error;
+  }
+}
+
+// Generate and download invoice as JPEG image
+export async function generateImage(invoice: Invoice): Promise<void> {
+  const element = document.getElementById('invoice-template');
+  
+  if (!element) {
+    throw new Error('Invoice template not found');
+  }
+
+  const filename = createFilename(invoice, 'jpg');
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    onclone: (clonedDoc) => {
+      const clonedElement = clonedDoc.getElementById('invoice-template');
+      if (clonedElement) {
+        clonedElement.style.visibility = 'visible';
+        const parent = clonedElement.parentElement;
+        if (parent) parent.style.visibility = 'visible';
+      }
+    }
+  });
+
+  // Convert canvas to blob and use file-saver
+  canvas.toBlob((blob) => {
+    if (blob) {
+      saveAs(blob, filename);
+    }
+  }, 'image/jpeg', 0.95);
+}
+
+// Generate PDF blob for sharing
+export async function generatePDFBlob(invoice: Invoice): Promise<{blob: Blob, filename: string}> {
+  const element = document.getElementById('invoice-template');
+  
+  if (!element) {
+    throw new Error('Invoice template not found');
+  }
+
+  const filename = createFilename(invoice, 'pdf');
+
+  // Same manual pipeline
+  const canvas = await html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff',
+    onclone: (clonedDoc) => {
+      const clonedElement = clonedDoc.getElementById('invoice-template');
+      if (clonedElement) {
+        clonedElement.style.visibility = 'visible';
+        const parent = clonedElement.parentElement;
+        if (parent) parent.style.visibility = 'visible';
+      }
+    }
+  });
+
+  const imgWidth = 210;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+  pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+
+  // Output as blob
+  const pdfBlob = pdf.output('blob');
+  
+  return { blob: pdfBlob, filename };
 }
 
 // Share PDF via WhatsApp
@@ -95,7 +149,7 @@ export async function sharePDFOnWhatsApp(invoice: Invoice): Promise<boolean> {
     // Create a File object from the blob
     const file = new File([blob], filename, { type: 'application/pdf' });
     
-    // Only use Web Share API on mobile (not desktop - it opens wrong apps like Outlook)
+    // Only use Web Share API on mobile
     if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
@@ -104,23 +158,15 @@ export async function sharePDFOnWhatsApp(invoice: Invoice): Promise<boolean> {
       });
       return true;
     } else {
-      // Desktop: Download PDF first
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Desktop: Download PDF first using file-saver
+      saveAs(blob, filename);
       
-      // Format customer phone for WhatsApp (add India country code if needed)
-      let customerPhone = invoice.customer_phone.replace(/\D/g, ''); // Remove non-digits
+      // Format customer phone for WhatsApp
+      let customerPhone = invoice.customer_phone.replace(/\D/g, '');
       if (customerPhone.length === 10) {
-        customerPhone = '91' + customerPhone; // Add India country code
+        customerPhone = '91' + customerPhone;
       }
       
-      // Create pre-filled message
       const message = `🚗 *Global Tours & Travels*
 
 Invoice #${invoice.invoice_number?.toString().padStart(4, '0')}
@@ -134,9 +180,8 @@ Please find the invoice PDF attached.
 Thank you for choosing Global Tours & Travels! 🙏
 📞 Contact: 98815 98109`;
 
-      // Open WhatsApp Web directly with customer's number and message
       window.open(`https://web.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(message)}`, '_blank');
-      return false; // Indicates PDF was downloaded separately
+      return false;
     }
   } catch (error) {
     console.error('Error sharing PDF:', error);

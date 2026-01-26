@@ -182,8 +182,17 @@ function SuccessContent() {
         </div>
       </div>
 
-      {/* Hidden Invoice Template for PDF */}
-      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+      {/* Hidden Invoice Template for PDF - Positioned to ensure html2canvas can capture it */}
+      <div id="invoice-template-container" style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0,
+        width: '210mm', // A4 width
+        minHeight: '297mm', // A4 height
+        zIndex: -1000,
+        visibility: 'hidden', // Hide from user but keep in DOM
+        pointerEvents: 'none'
+      }}>
         {invoice && <InvoiceTemplate invoice={invoice} />}
       </div>
     </main>

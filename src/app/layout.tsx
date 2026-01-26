@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   title: "Global Tours & Travels - Invoice",
@@ -38,6 +39,7 @@ export default function RootLayout({
       </head>
       <body>
         {children}
+        <BottomNav />
         <script
           dangerouslySetInnerHTML={{
             __html: `

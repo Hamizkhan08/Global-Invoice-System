@@ -1,20 +1,20 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import InvoiceTemplate from '@/components/InvoiceTemplate';
-import { generatePDF } from '@/lib/pdf';
+import { generatePDF, sharePDFOnWhatsApp } from '@/lib/pdf';
 import { Invoice } from '@/types/invoice';
 
-function DashboardContent() {
+function HistoryContent() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,8 +45,6 @@ function DashboardContent() {
       router.push('/login');
       return;
     }
-    
-    setUser({ email: user.email || '' });
   };
 
   const fetchInvoices = async () => {
@@ -67,20 +65,41 @@ function DashboardContent() {
     }
   };
 
-  const handleDownload = async (invoice: Invoice) => {
+  /* 
+   * SIMPLIFIED: Using Native Browser Print
+   * Open dedicated print page in new window to guarantee PDF generation works 
+   */
+  const handlePrint = (invoice: Invoice) => {
+    // Open the dedicated print page in a new window/tab
+    const width = 800;
+    const height = 1000;
+    const left = (window.screen.width - width) / 2;
+    const top = (window.screen.height - height) / 2;
+    
+    window.open(
+      `/print-invoice?id=${invoice.id}`, 
+      '_blank', // Open in new tab (users often block popups, new tab is safer)
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
+  };
+
+  const handleShare = async (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    setIsDownloading(true);
+    setIsSharing(true);
     
     // Wait for template to render
     await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
-      await generatePDF(invoice);
+      const directShare = await sharePDFOnWhatsApp(invoice);
+      if (!directShare) {
+        alert(`✅ PDF downloaded!\n\nAttach file in WhatsApp.`);
+      }
     } catch (error) {
-      console.error('Error downloading PDF:', error);
-      alert('Error downloading PDF');
+      console.error('Error sharing:', error);
+      alert('Error sharing.');
     } finally {
-      setIsDownloading(false);
+      setIsSharing(false);
       setSelectedInvoice(null);
     }
   };
@@ -104,12 +123,6 @@ function DashboardContent() {
     }
   };
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: '2-digit',
@@ -119,67 +132,23 @@ function DashboardContent() {
   };
 
   return (
-    <main style={{ minHeight: '100vh' }}>
+    <main style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '6rem' }}>
       {/* Header */}
       <header className="header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '1.25rem' }}>Dashboard</h1>
-            <p style={{ fontSize: '0.75rem', opacity: 0.8 }}>{user?.email}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              color: 'white',
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-            }}
-          >
-            Logout
-          </button>
-        </div>
+        <h1 style={{ fontSize: '1.25rem' }}>Invoice History</h1>
       </header>
 
-      <div className="p-4">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="card text-center">
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--primary)' }}>
-              {invoices.length}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Total Invoices
-            </div>
-          </div>
-          <div className="card text-center">
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--success)' }}>
-              ₹{invoices.reduce((sum, i) => sum + i.total_amount, 0).toLocaleString('en-IN')}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-              Total Revenue
-            </div>
-          </div>
-        </div>
-
+      <div className="p-4 max-w-lg mx-auto">
         {/* Search */}
-        <div className="form-group">
+        <div className="form-group sticky top-[72px] z-10 bg-[#f8fafc] pb-2">
           <input
             type="search"
-            className="form-input"
-            placeholder="🔍 Search by invoice #, name, or phone..."
+            className="form-input shadow-sm"
+            placeholder="🔍 Search invoices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        {/* Create New Button */}
-        <a href="/" className="btn btn-primary btn-block mb-4">
-          ➕ Create New Invoice
-        </a>
 
         {/* Invoice List */}
         {isLoading ? (
@@ -187,15 +156,15 @@ function DashboardContent() {
             <div className="spinner" style={{ width: 40, height: 40, margin: '0 auto', borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }}></div>
           </div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="card text-center" style={{ color: 'var(--text-muted)' }}>
-            {searchQuery ? 'No invoices found' : 'No invoices yet'}
+          <div className="card text-center py-10" style={{ color: 'var(--text-muted)' }}>
+            {searchQuery ? 'No invoices found' : 'No history yet'}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {filteredInvoices.map((invoice) => (
-              <div key={invoice.id} className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--primary)' }}>
+              <div key={invoice.id} className="card !p-4">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-sm font-bold">
                     #{invoice.invoice_number?.toString().padStart(4, '0')}
                   </span>
                   <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
@@ -203,34 +172,47 @@ function DashboardContent() {
                   </span>
                 </div>
                 
-                <div style={{ marginBottom: '0.5rem' }}>
+                <div style={{ marginBottom: '0.75rem' }}>
                   <div style={{ fontWeight: 600 }}>{invoice.customer_name}</div>
                   <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                    📞 {invoice.customer_phone}
+                    📍 {invoice.pickup_location} → {invoice.destination}
                   </div>
                 </div>
                 
-                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                  📍 {invoice.pickup_location} → {invoice.destination}
-                </div>
-                
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--success)' }}>
+                  <span style={{ fontWeight: 700, fontSize: '1.125rem', color: 'var(--success)' }}>
                     ₹{invoice.total_amount.toLocaleString('en-IN')}
                   </span>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {/* EDIT */}
                     <button
-                      onClick={() => handleDownload(invoice)}
-                      className="btn btn-secondary"
-                      style={{ minHeight: '2.5rem', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-                      disabled={isDownloading}
+                      onClick={() => router.push(`/edit/${invoice.id}`)}
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200"
+                      title="Edit"
                     >
-                      📥
+                      ✏️
                     </button>
+                    {/* PDF */}
+                    <button
+                      onClick={() => handlePrint(invoice)}
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 text-slate-600 border border-slate-200"
+                      title="Print"
+                    >
+                      🖨️
+                    </button>
+                    {/* WhatsApp */}
+                    <button
+                      onClick={() => handleShare(invoice)}
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-green-50 text-green-600 border border-green-200"
+                      title="Share"
+                    >
+                      📱
+                    </button>
+                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(invoice)}
-                      className="btn btn-danger"
-                      style={{ minHeight: '2.5rem', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                      className="w-9 h-9 flex items-center justify-center rounded-full bg-red-50 text-red-600 border border-red-200"
+                      title="Delete"
                     >
                       🗑️
                     </button>
@@ -242,22 +224,20 @@ function DashboardContent() {
         )}
       </div>
 
-      {/* Hidden Invoice Template for PDF */}
-      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+      {/* Hidden Invoice Template */}
+      <div id="invoice-template-container" style={{ 
+        position: 'fixed', top: 0, left: 0, width: '210mm', minHeight: '297mm', zIndex: -1000, visibility: 'hidden', pointerEvents: 'none'
+      }}>
         {selectedInvoice && <InvoiceTemplate invoice={selectedInvoice} />}
       </div>
     </main>
   );
 }
 
-export default function DashboardPage() {
+export default function HistoryPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center" style={{ minHeight: '100vh' }}>
-        <div className="spinner" style={{ width: 48, height: 48 }}></div>
-      </div>
-    }>
-      <DashboardContent />
+    <Suspense fallback={<div>Loading...</div>}>
+      <HistoryContent />
     </Suspense>
   );
 }

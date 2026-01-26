@@ -12,9 +12,11 @@ export interface Invoice {
   cab_type: string;
   driver_name: string;
   driver_phone: string;
-  fare_amount: number;
-  toll_amount: number;
+  fare_amount: number; // Base Fare
+  toll_amount: number; // Kept for backward compatibility, but UI will prefer additional_charges
   total_amount: number;
+  stops?: string[]; // Array of intermediate stops
+  additional_charges?: { type: string; amount: number }[]; // Array of extra charges
   payment_mode: 'cash' | 'upi' | 'bank';
   created_at?: string;
   updated_at?: string;

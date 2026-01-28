@@ -24,30 +24,30 @@ export default function HomePage() {
         {/* Action Buttons */}
         <button
           onClick={() => router.push('/create')}
-          className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-blue-200 text-left transition-transform active:scale-[0.98] flex items-center justify-between group"
+          className="bg-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-blue-200 text-left transition-all active:scale-[0.98] flex items-center justify-between group hover:bg-blue-700 hover:shadow-xl"
         >
           <div>
-             <div className="bg-white/20 w-12 h-12 rounded-full flex items-center justify-center mb-3 text-2xl">
+             <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 text-2xl bg-white/20 text-white backdrop-blur-sm">
                ➕
              </div>
              <h3 className="text-xl font-bold">Create New Invoice</h3>
              <p className="text-blue-100 text-sm mt-1">Generate professional PDF invoice</p>
           </div>
-          <span className="text-2xl group-hover:translate-x-2 transition-transform">→</span>
+          <span className="text-2xl text-blue-200 group-hover:text-white group-hover:translate-x-2 transition-all">→</span>
         </button>
 
         <button
           onClick={() => router.push('/dashboard')}
-          className="bg-white text-slate-800 p-6 rounded-2xl shadow-md border border-slate-200 text-left transition-transform active:scale-[0.98] flex items-center justify-between group"
+          className="bg-white text-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-l-blue-600 border-y border-r border-slate-200 text-left transition-all active:scale-[0.98] flex items-center justify-between group hover:shadow-md hover:border-r-blue-200"
         >
           <div>
-            <div className="bg-slate-100 w-12 h-12 rounded-full flex items-center justify-center mb-3 text-2xl">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-3 text-2xl bg-blue-50 text-blue-600">
                📋
              </div>
-             <h3 className="text-xl font-bold">Track History</h3>
+             <h3 className="text-xl font-bold group-hover:text-blue-600 transition-colors">Track History</h3>
              <p className="text-slate-500 text-sm mt-1">View, search, or update past invoices</p>
           </div>
-          <span className="text-2xl text-slate-400 group-hover:translate-x-2 transition-transform">→</span>
+          <span className="text-2xl text-slate-300 group-hover:text-blue-500 group-hover:translate-x-2 transition-all">→</span>
         </button>
       </div>
     </main>

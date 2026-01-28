@@ -10,9 +10,13 @@ CREATE TABLE IF NOT EXISTS invoices (
   invoice_date DATE DEFAULT CURRENT_DATE,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
-  pickup_location TEXT NOT NULL,
-  destination TEXT NOT NULL,
+  customer_phone TEXT NOT NULL,
+  pickup_location TEXT, -- Can be used for full address or just Area
+  pickup_city TEXT,     -- Specific city field
+  drop_location TEXT,   -- Can be used for full address or just Area
+  drop_city TEXT,       -- Specific city field
   journey_date DATE NOT NULL,
+  return_date DATE,     -- Date of completion/return
   journey_type TEXT CHECK (journey_type IN ('one-way', 'two-way')),
   cab_number TEXT,
   cab_type TEXT,

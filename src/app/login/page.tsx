@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
@@ -37,90 +38,65 @@ export default function LoginPage() {
   };
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <header className="header">
-        <h1>Global Tours & Travels</h1>
-        <p>Admin Login</p>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-start pt-0">
+       {/* Header */}
+      <header className="w-full bg-blue-700 text-white shadow-md py-8 flex flex-col items-center justify-center mb-10 rounded-b-[2rem]">
+        <h1 className="text-3xl font-bold tracking-wide">
+          Global Tours & Travels
+        </h1>
+        <p className="text-blue-100 font-medium mt-1 uppercase tracking-wider text-sm">Admin Login</p>
       </header>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem', textAlign: 'center' }}>
-            🔐 Admin Login
-          </h2>
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 w-full max-w-md mx-4">
+        <div className="flex flex-col items-center mb-6">
+          <div className="text-4xl mb-2">🔐</div>
+          <h2 className="text-2xl font-bold text-slate-800">Admin Login</h2>
+        </div>
 
-          <form onSubmit={handleLogin}>
-            <div className="form-group">
-              <label className="form-label">Email</label>
-              <input
-                type="email"
-                className="form-input"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-
-            {error && (
-              <div style={{
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
-                color: '#dc2626',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                marginBottom: '1rem',
-                fontSize: '0.875rem',
-              }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn-primary btn-block"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner"></span>
-                  Logging in...
-                </>
-              ) : (
-                'Login'
-              )}
-            </button>
-          </form>
-
-          <div className="text-center mt-6">
-            <a 
-              href="/" 
-              style={{ 
-                color: 'var(--text-muted)', 
-                fontSize: '0.875rem',
-                textDecoration: 'underline'
-              }}
-            >
-              ← Back to Invoice Form
-            </a>
+        {error && (
+          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm text-center">
+            {error}
           </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 active:scale-[0.98] transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          >
+            {isLoading ? 'Checking...' : 'Login'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <Link href="/" className="text-slate-400 text-sm hover:text-blue-600 transition-colors font-medium">
+            ← Back to Invoice Form
+          </Link>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

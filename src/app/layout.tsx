@@ -38,8 +38,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
-        {children}
-        <BottomNav />
+          {children}
+          <BottomNav />
         <script
           dangerouslySetInnerHTML={{
             __html: `

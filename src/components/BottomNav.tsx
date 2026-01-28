@@ -24,7 +24,11 @@ export default function BottomNav() {
         </Link>
 
         {/* Create */}
-        <Link href="/create" className={`flex flex-col items-center justify-center w-full h-full ${isActive('/create') ? 'text-blue-600' : 'text-gray-400'}`}>
+        <Link 
+          href="/create" 
+          onClick={() => localStorage.removeItem('invoice_draft')}
+          className={`flex flex-col items-center justify-center w-full h-full ${isActive('/create') ? 'text-blue-600' : 'text-gray-400'}`}
+        >
           <div className="bg-blue-600 text-white rounded-full p-2 -mt-6 shadow-lg border-4 border-white">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

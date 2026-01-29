@@ -175,10 +175,17 @@ function SuccessContent() {
           <Link 
             href="/dashboard" 
             style={{ 
-              color: 'var(--text-muted)', 
+              color: '#64748b', 
               fontSize: '0.875rem',
-              textDecoration: 'underline'
+              fontWeight: 600,
+              textDecoration: 'none',
+              marginTop: '1rem',
+              display: 'inline-block',
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #e2e8f0'
             }}
+            className="hover:bg-white hover:shadow-sm transition-all"
           >
             View All Invoices →
           </Link>
@@ -189,11 +196,11 @@ function SuccessContent() {
       <div id="invoice-template-container" style={{ 
         position: 'fixed', 
         top: 0, 
-        left: 0,
+        left: '-9999px', // Move off-screen
         width: '210mm', // A4 width
         minHeight: '297mm', // A4 height
         zIndex: -1000,
-        visibility: 'hidden', // Hide from user but keep in DOM
+        // visibility: 'hidden', // Don't use visibility hidden as it might affect rendering capture
         pointerEvents: 'none'
       }}>
         {invoice && <InvoiceTemplate invoice={invoice} />}

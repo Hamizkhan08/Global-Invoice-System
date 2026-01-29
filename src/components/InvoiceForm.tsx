@@ -50,6 +50,61 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
   // Calculate Total
   const totalAmount = baseFare + additionalCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0) + driverAllowance;
 
+  // Sync state with initialData when it changes (Fix for Edit mode navigation)
+  useEffect(() => {
+    if (initialData) {
+      // 1. Sync Stops
+      const normalizedStops = initialData.stops?.map(s => {
+        if (typeof s === 'string') return { id: crypto.randomUUID(), location: s, city: '' };
+        return s;
+      }) || [];
+      // Only update if different length or ID to avoid loops (basic check)
+      setStops(normalizedStops);
+
+      // 2. Sync Other Fields
+      setAdditionalCharges(initialData.additional_charges || []);
+      setBaseFare(initialData.fare_amount || 0);
+      setTripType((initialData.trip_type as 'oneway' | 'roundtrip' | 'local') || 'oneway');
+      setTotalKm(initialData.total_km || 0);
+      setTotalHours(initialData.total_hours || 0);
+      setVehicleModel(initialData.vehicle_model || '');
+      setStartingKm(initialData.starting_km || 0);
+      setClosingKm(initialData.closing_km || 0);
+      setDriverAllowance(initialData.driver_allowance || 0);
+
+      // 3. Reset form uncontrolled inputs using reset() if needed, 
+      // but simpler to use key approach or manual value assignment.
+      // Since we use defaultValue, we might need to force re-render.
+      if (formRef.current) {
+        formRef.current.reset(); // Clear form specifically
+        // We will rely on React key update in parent or Manual Value setting here
+        // But defaultValue only sets on mount. 
+        // Force update form values:
+        const form = formRef.current;
+        const setVal = (name: string, val?: string | number) => {
+           const input = form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
+           if (input && val !== undefined && val !== null) input.value = val.toString();
+        };
+
+        setVal('invoice_date', initialData.invoice_date);
+        setVal('customer_name', initialData.customer_name);
+        setVal('customer_phone', initialData.customer_phone);
+        setVal('pickup_location', initialData.pickup_location);
+        setVal('pickup_city', initialData.pickup_city);
+        setVal('destination', initialData.destination);
+        setVal('drop_city', initialData.drop_city);
+        setVal('journey_date', initialData.journey_date);
+        setVal('return_date', initialData.return_date);
+        setVal('journey_type', initialData.journey_type);
+        setVal('cab_number', initialData.cab_number);
+        setVal('cab_type', initialData.cab_type);
+        setVal('driver_name', initialData.driver_name);
+        setVal('driver_phone', initialData.driver_phone);
+        setVal('payment_mode', initialData.payment_mode);
+      }
+    }
+  }, [initialData]);
+
   // Draft Loading (Only if NOT editing)
   useEffect(() => {
     if (initialData) return; // Editing existing invoice

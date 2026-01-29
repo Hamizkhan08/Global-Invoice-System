@@ -1,6 +1,6 @@
 'use client';
 
-import { Invoice, Stop } from '@/types/invoice';
+import { Invoice } from '@/types/invoice';
 import { forwardRef } from 'react';
 
 interface InvoiceTemplateProps {
@@ -78,15 +78,18 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
             {/* COMPANY CONTACT (Right Aligned in Header) */}
             <div className="text-right text-sm text-slate-300 font-medium">
                <p className="flex items-center justify-end gap-2">
-                 <span>Sainath Nagar, Nashik - 422001</span> 
-                 <span className="text-blue-500">📍</span>
+                 <span className="text-xs leading-tight w-64 text-right">
+                   Aman Paradise Appt, Wadala Rd, Opp. JMCT College,<br/>
+                   Al Madina Colony, Nashik, Maharashtra 422006
+                 </span> 
+                 <span className="text-blue-500 mt-0.5">📍</span>
                </p>
-               <p className="flex items-center justify-end gap-2 mt-1">
+               <p className="flex items-center justify-end gap-2 mt-2">
                  <span>+91 98815 98109</span> 
                  <span className="text-blue-500">📞</span>
                </p>
                <p className="flex items-center justify-end gap-2 mt-1">
-                 <span>globaltours@example.com</span> 
+                 <span>afzalkhan0404@gmail.com</span> 
                  <span className="text-blue-500">✉️</span>
                </p>
             </div>
@@ -148,13 +151,31 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
 
                   <div className="border-t border-slate-100 pt-3">
                     <div className="text-[10px] text-slate-400 uppercase font-bold">Vehicle</div>
-                    <div className="font-semibold text-slate-700 capitalize text-lg">{invoice.cab_type || 'Cab'}</div>
+                    <div className="font-semibold text-slate-700 capitalize text-lg">
+                      {invoice.cab_type || 'Cab'}
+                      {invoice.vehicle_model && <span className="text-slate-500 text-sm ml-2">({invoice.vehicle_model})</span>}
+                    </div>
                     <div className="text-xs font-mono bg-slate-100 px-2 py-1 rounded inline-block mt-1 text-slate-600">{invoice.cab_number}</div>
                   </div>
 
                   <div>
                      <div className="text-[10px] text-slate-400 uppercase font-bold">Driver</div>
                      <div className="font-semibold text-slate-700">{invoice.driver_name}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+                     <div>
+                        <div className="text-[10px] text-slate-400 uppercase font-bold">Start KM</div>
+                        <div className="font-mono font-semibold text-slate-700 text-sm">
+                           {invoice.starting_km ? invoice.starting_km : '-'}
+                        </div>
+                     </div>
+                     <div>
+                        <div className="text-[10px] text-slate-400 uppercase font-bold">End KM</div>
+                        <div className="font-mono font-semibold text-slate-700 text-sm">
+                           {invoice.closing_km ? invoice.closing_km : '-'}
+                        </div>
+                     </div>
                   </div>
                 </div>
              </div>
@@ -243,6 +264,13 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
                             </div>
                           ))}
 
+                  {(invoice.driver_allowance && invoice.driver_allowance > 0) && (
+                    <tr>
+                      <td className="py-4 px-6 text-slate-500">Driver Allowance</td>
+                      <td className="py-4 px-6 text-right text-slate-600">{formatCurrency(invoice.driver_allowance)}</td>
+                    </tr>
+                  )}
+
                           {/* END */}
                           <div className="flex gap-4">
                              <div className="w-10 h-10 rounded-full bg-red-50 border-4 border-white shadow-sm flex items-center justify-center shrink-0 z-10">
@@ -329,7 +357,7 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
              <div className="text-xs text-slate-500 max-w-sm italic">
                 <p className="font-bold text-blue-600 mb-2 uppercase not-italic">Customer Note</p>
                 <p className="leading-relaxed">
-                   "We hope you had a wonderful journey with us! Your comfort and safety are our top priority. We look forward to serving you again on your next adventure."
+                   &quot;We hope you had a wonderful journey with us! Your comfort and safety are our top priority. We look forward to serving you again on your next adventure.&quot;
                 </p>
              </div>
              
@@ -337,13 +365,11 @@ const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
                 {/* Digital Stamp Simulation */}
                 {/* Digital Stamp Image */}
                 <div className="mb-2 inline-block relative">
-                   {/* Using standard img tag for html2canvas compatibility (Next/Image can be tricky with it) */}
                    {/* eslint-disable-next-line @next/next/no-img-element */}
                    <img 
-                     src="/stamp.png" 
-                     alt="Stamp" 
-                     className="w-32 h-auto opacity-90 mix-blend-multiply" 
-                     style={{ transform: 'rotate(-5deg)' }}
+                     src="/signature.png" 
+                     alt="Authorized Signature" 
+                     className="w-32 h-auto" 
                    />
                 </div>
                 <div className="text-xs font-bold text-slate-800 uppercase tracking-widest">Authorized Signatory</div>

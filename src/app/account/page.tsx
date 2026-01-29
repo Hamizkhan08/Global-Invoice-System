@@ -12,37 +12,38 @@ function AccountContent() {
   const router = useRouter();
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+      
+      setUser({ email: user.email || '' });
+    };
+
+    const fetchStats = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('invoices')
+          .select('total_amount, invoice_date');
+
+        if (error) throw error;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setInvoices(data as any[]); 
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     checkAuth();
     fetchStats();
-  }, []);
-
-  const checkAuth = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      router.push('/login');
-      return;
-    }
-    
-    setUser({ email: user.email || '' });
-  };
-
-  const fetchStats = async () => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('total_amount, invoice_date');
-
-      if (error) throw error;
-      setInvoices(data as any); // Using Partial Invoice for stats
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [router]);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -71,6 +72,11 @@ function AccountContent() {
         <h1>Account & Stats</h1>
       </header>
 
+      {isLoading ? (
+        <div className="flex items-center justify-center p-12">
+           <div className="spinner" style={{ width: 40, height: 40, borderColor: 'var(--border)', borderTopColor: 'var(--primary)' }}></div>
+        </div>
+      ) : (
       <div className="p-4 max-w-lg mx-auto">
         {/* Profile Card */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6 flex items-center justify-between">
@@ -133,6 +139,7 @@ function AccountContent() {
           Global Invoice System v1.2.0
         </div>
       </div>
+      )}
     </main>
   );
 }

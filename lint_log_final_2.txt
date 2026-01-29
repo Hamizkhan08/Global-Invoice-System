@@ -1,0 +1,16 @@
+
+> global-invoice-system@0.1.0 lint
+> eslint
+
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\layout.tsx
+  34:9  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\components\InvoiceForm.tsx
+  12:7  warning  'defaultStop' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\lib\pdf.ts
+  72:37  warning  'invoice' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 3 problems (0 errors, 3 warnings)
+

@@ -1,9 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-// import ThemeToggle from './ThemeToggle';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Invoice, InvoiceFormData, Stop } from '@/types/invoice';
 
 interface InvoiceFormProps {
@@ -11,6 +8,12 @@ interface InvoiceFormProps {
   nextInvoiceNumber: number;
   initialData?: Invoice; // For Editing
 }
+
+const defaultStop: Stop = {
+  id: '',
+  location: '',
+  city: ''
+};
 
 export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }: InvoiceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +32,7 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
   );
   
   // Trip Type State
-  const [tripType, setTripType] = useState<'oneway' | 'roundtrip' | 'local'>((initialData?.trip_type as any) || 'oneway');
+  const [tripType, setTripType] = useState<'oneway' | 'roundtrip' | 'local'>((initialData?.trip_type as 'oneway' | 'roundtrip' | 'local') || 'oneway');
 
   // Base Amounts - Initialize from initialData
   const [baseFare, setBaseFare] = useState<number>(initialData?.fare_amount || 0);
@@ -38,8 +41,14 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
   const [totalKm, setTotalKm] = useState<number>(initialData?.total_km || 0);
   const [totalHours, setTotalHours] = useState<number>(initialData?.total_hours || 0);
 
+  // New Fields
+  const [vehicleModel, setVehicleModel] = useState<string>(initialData?.vehicle_model || '');
+  const [startingKm, setStartingKm] = useState<number>(initialData?.starting_km || 0);
+  const [closingKm, setClosingKm] = useState<number>(initialData?.closing_km || 0);
+  const [driverAllowance, setDriverAllowance] = useState<number>(initialData?.driver_allowance || 0);
+
   // Calculate Total
-  const totalAmount = baseFare + additionalCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0);
+  const totalAmount = baseFare + additionalCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0) + driverAllowance;
 
   // Draft Loading (Only if NOT editing)
   useEffect(() => {
@@ -59,6 +68,7 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
         }
         // Load complex state
         if (draft.stops) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const loadedStops = draft.stops.map((s: any) => {
             if (typeof s === 'string') return { id: crypto.randomUUID(), location: s, city: '' };
             return s;
@@ -67,9 +77,14 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
         }
         if (draft.additionalCharges) setAdditionalCharges(draft.additionalCharges);
         if (draft.baseFare) setBaseFare(draft.baseFare);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (draft.tripType) setTripType(draft.tripType as any);
         if (draft.totalKm) setTotalKm(draft.totalKm);
         if (draft.totalHours) setTotalHours(draft.totalHours);
+        if (draft.vehicleModel) setVehicleModel(draft.vehicleModel);
+        if (draft.startingKm) setStartingKm(draft.startingKm);
+        if (draft.closingKm) setClosingKm(draft.closingKm);
+        if (draft.driverAllowance) setDriverAllowance(draft.driverAllowance);
 
       } catch (e) {
         console.error('Error loading draft:', e);
@@ -81,6 +96,7 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
   const saveDraft = () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const draft: any = {};
       formData.forEach((value, key) => {
         draft[key] = value as string;
@@ -89,6 +105,10 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
       draft.stops = stops;
       draft.additionalCharges = additionalCharges;
       draft.baseFare = baseFare;
+      draft.vehicleModel = vehicleModel;
+      draft.startingKm = startingKm;
+      draft.closingKm = closingKm;
+      draft.driverAllowance = driverAllowance;
       localStorage.setItem('invoice_draft', JSON.stringify(draft));
     }
   };
@@ -140,7 +160,11 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
       // Trip Types Support
       trip_type: tripType,
       total_km: tripType === 'local' ? totalKm : undefined,
-      total_hours: tripType === 'local' ? totalHours : undefined
+      total_hours: tripType === 'local' ? totalHours : undefined,
+      starting_km: startingKm || undefined,
+      closing_km: closingKm || undefined,
+      driver_allowance: driverAllowance || undefined,
+      vehicle_model: vehicleModel || undefined
     };
 
     try {
@@ -268,7 +292,7 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
             <select
               value={tripType}
               onChange={(e) => {
-                setTripType(e.target.value as any);
+                setTripType(e.target.value as 'oneway' | 'roundtrip' | 'local');
                 saveDraft();
               }}
               className="form-input appearance-none bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 py-3 rounded-xl"
@@ -501,19 +525,34 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
              </div>
            </div>
 
-           <div className="form-group">
-             <label className="form-label text-xs">Vehicle</label>
-             <select 
-               name="cab_type" 
-               className="form-input form-select text-sm"
-               defaultValue={initialData?.cab_type}
-             >
-               <option value="sedan">Sedan</option>
-               <option value="suv">SUV</option>
-               <option value="innova">Innova</option>
-               <option value="crysta">Crysta</option>
-               <option value="tempo">Traveller</option>
-             </select>
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+             <div className="form-group">
+               <label className="form-label text-xs">Vehicle Type</label>
+               <select 
+                 name="cab_type" 
+                 className="form-input form-select text-sm"
+                 defaultValue={initialData?.cab_type}
+               >
+                 <option value="sedan">Sedan</option>
+                 <option value="suv">SUV</option>
+                 <option value="innova">Innova</option>
+                 <option value="crysta">Crysta</option>
+                 <option value="tempo">Traveller</option>
+               </select>
+             </div>
+             <div className="form-group">
+               <label className="form-label text-xs">Vehicle Model (Optional)</label>
+               <input 
+                 type="text" 
+                 className="form-input text-sm"
+                 placeholder="e.g. Ertiga, Aura"
+                 value={vehicleModel}
+                 onChange={(e) => {
+                   setVehicleModel(e.target.value);
+                   saveDraft();
+                 }}
+               />
+             </div>
            </div>
            
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
@@ -586,6 +625,60 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
             min="0"
             required
           />
+        </div>
+
+        {/* Driver Allowance */}
+        <div className="form-group bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 mb-4">
+          <div className="flex justify-between items-center mb-1">
+             <label className="form-label mb-0">Driver Allowance (₹)</label>
+          </div>
+           <input
+            type="number"
+            className="form-input text-lg font-bold text-gray-800 dark:text-gray-100"
+            value={driverAllowance || ''}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setDriverAllowance(val < 0 ? 0 : val || 0);
+              saveDraft();
+            }}
+            onKeyDown={blockInvalidChar}
+            placeholder="0"
+            min="0"
+          />
+        </div>
+
+        {/* Mileage Details - Optional */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+           <div className="form-group">
+              <label className="form-label text-xs">Starting Km</label>
+              <input 
+                type="number" 
+                className="form-input text-sm"
+                value={startingKm || ''}
+                onChange={(e) => {
+                   const val = parseFloat(e.target.value);
+                   setStartingKm(val < 0 ? 0 : val || 0);
+                   saveDraft();
+                }}
+                onKeyDown={blockInvalidChar}
+                placeholder="Optional"
+              />
+           </div>
+           <div className="form-group">
+              <label className="form-label text-xs">Closing Km</label>
+              <input 
+                type="number" 
+                className="form-input text-sm"
+                value={closingKm || ''}
+                onChange={(e) => {
+                   const val = parseFloat(e.target.value);
+                   setClosingKm(val < 0 ? 0 : val || 0);
+                   saveDraft();
+                }}
+                onKeyDown={blockInvalidChar}
+                placeholder="Optional"
+              />
+           </div>
         </div>
 
         {/* Dynamic Additional Charges */}
@@ -681,6 +774,12 @@ export default function InvoiceForm({ onSubmit, nextInvoiceNumber, initialData }
              <div className="flex justify-between items-center mb-2 text-slate-400 text-sm border-b border-slate-700 pb-2">
                <span>Extras</span>
                <span>+ ₹ {additionalCharges.reduce((s, c) => s + (c.amount || 0), 0).toLocaleString()}</span>
+             </div>
+           )}
+           {driverAllowance > 0 && (
+             <div className="flex justify-between items-center mb-2 text-slate-400 text-sm border-b border-slate-700 pb-2">
+               <span>Driver Allowance</span>
+               <span>+ ₹ {driverAllowance.toLocaleString()}</span>
              </div>
            )}
            <div className="flex justify-between items-end">

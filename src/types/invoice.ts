@@ -20,6 +20,7 @@ export interface Invoice {
   journey_type: 'one-way' | 'two-way';
   cab_number: string;
   cab_type: string;
+  vehicle_model?: string; // e.g. Ertiga, Aura
   driver_name: string;
   driver_phone: string;
   fare_amount: number; // Base Fare
@@ -29,6 +30,9 @@ export interface Invoice {
   trip_type?: 'oneway' | 'roundtrip' | 'local';
   total_km?: number;
   total_hours?: number;
+  starting_km?: number;
+  closing_km?: number;
+  driver_allowance?: number;
   stops?: Stop[]; // Array of intermediate stops structured as objects
   additional_charges?: { type: string; amount: number }[]; // Array of extra charges
   payment_mode: 'cash' | 'upi' | 'bank';

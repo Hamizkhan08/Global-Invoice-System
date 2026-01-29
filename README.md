@@ -97,7 +97,7 @@ src/
 
 - **Name**: Global Tours & Travels
 - **Contact**: 98815 98109
-- **Address**: Sainath Nagar, Nashik
+- **Address**: Aman Paradise Appt, Wadala Rd, Nashik 422006
 
 ## License
 

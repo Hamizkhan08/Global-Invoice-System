@@ -1,0 +1,48 @@
+
+> global-invoice-system@0.1.0 lint
+> eslint
+
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\account\page.tsx
+  10:10  warning  'isLoading' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+  17:6   warning  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  39:27  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\dashboard\page.tsx
+    8:10  warning  'generatePDF' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   17:10  warning  'isSharing' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+   31:6   warning  React Hook useEffect has missing dependencies: 'checkAuth' and 'fetchInvoices'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  179:21  error    Unexpected any. Specify a different type                                                                                            @typescript-eslint/no-explicit-any
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\edit\[id]\page.tsx
+  20:6  warning  React Hook useEffect has a missing dependency: 'fetchInvoice'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\layout.tsx
+  34:9  warning  Custom fonts not added in `pages/_document.js` will only load for a single page. This is discouraged. See: https://nextjs.org/docs/messages/no-page-custom-font  @next/next/no-page-custom-font
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\page.tsx
+  3:8  warning  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\app\success\page.tsx
+   24:6   warning  React Hook useEffect has a missing dependency: 'fetchInvoice'. Either include it or remove the dependency array                                        react-hooks/exhaustive-deps
+  165:11  error    Do not use an `<a>` element to navigate to `/`. Use `<Link />` from `next/link` instead. See: https://nextjs.org/docs/messages/no-html-link-for-pages  @next/next/no-html-link-for-pages
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\components\InvoiceForm.tsx
+    3:8    warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+    5:10   warning  'useRouter' is defined but never used     @typescript-eslint/no-unused-vars
+   32:105  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   67:51   error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:59   error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   92:20   error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  285:47   error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\components\InvoiceTemplate.tsx
+    3:19   warning  'Stop' is defined but never used                                 @typescript-eslint/no-unused-vars
+  357:20   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  357:172  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\Lenovo\Desktop\travels\Global-Invoice-System\src\lib\pdf.ts
+  72:37  warning  'invoice' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 23 problems (10 errors, 13 warnings)
+

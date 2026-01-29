@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import InvoiceTemplate from '@/components/InvoiceTemplate';
 import { createClient } from '@/lib/supabase/client';
 import { generatePDF, sharePDFOnWhatsApp } from '@/lib/pdf';
@@ -19,27 +20,29 @@ function SuccessContent() {
 
   useEffect(() => {
     if (invoiceId) {
+      const fetchInvoice = async () => {
+        try {
+            const supabase = createClient();
+            const { data, error } = await supabase
+              .from('invoices')
+              .select('*')
+              .eq('id', invoiceId)
+              .single();
+      
+            if (error) throw error;
+            setInvoice(data as Invoice);
+          } catch (error) {
+            console.error('Error fetching invoice:', error);
+          } finally {
+            setIsLoading(false);
+          }
+      };
+      
       fetchInvoice();
     }
   }, [invoiceId]);
 
-  const fetchInvoice = async () => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .eq('id', invoiceId)
-        .single();
 
-      if (error) throw error;
-      setInvoice(data as Invoice);
-    } catch (error) {
-      console.error('Error fetching invoice:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleDownload = async () => {
     if (!invoice) return;
@@ -162,14 +165,14 @@ function SuccessContent() {
             )}
           </button>
 
-          <a href="/" className="btn btn-secondary btn-block">
+          <Link href="/" className="btn btn-secondary btn-block">
             ➕ Create New Invoice
-          </a>
+          </Link>
         </div>
 
         {/* Dashboard Link */}
         <div className="text-center">
-          <a 
+          <Link 
             href="/dashboard" 
             style={{ 
               color: 'var(--text-muted)', 
@@ -178,7 +181,7 @@ function SuccessContent() {
             }}
           >
             View All Invoices →
-          </a>
+          </Link>
         </div>
       </div>
 

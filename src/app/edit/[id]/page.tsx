@@ -15,29 +15,29 @@ function EditInvoiceContent() {
 
   useEffect(() => {
     if (id) {
+      const fetchInvoice = async (invoiceId: string) => {
+        try {
+          const supabase = createClient();
+          const { data, error } = await supabase
+            .from('invoices')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+  
+          if (error) throw error;
+          setInvoice(data);
+        } catch (error) {
+          console.error('Error fetching invoice:', error);
+          alert('Error loading invoice');
+          router.push('/dashboard');
+        } finally {
+          setLoading(false);
+        }
+      };
+
       fetchInvoice(id);
     }
-  }, [id]);
-
-  const fetchInvoice = async (invoiceId: string) => {
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .eq('id', invoiceId)
-        .single();
-
-      if (error) throw error;
-      setInvoice(data);
-    } catch (error) {
-      console.error('Error fetching invoice:', error);
-      alert('Error loading invoice');
-      router.push('/dashboard');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [id, router]);
 
   const handleUpdate = async (data: InvoiceFormData) => {
     try {

@@ -169,8 +169,8 @@ https://share.google/jD8LD5ZxRAxPvEwTc`;
       window.open(`https://web.whatsapp.com/send?phone=${customerPhone}&text=${encodeURIComponent(message)}`, '_blank');
       return false;
     }
-  } catch (error) {
-    console.error('Error sharing PDF:', error);
+  } catch (_error) {
+    console.error('Error sharing PDF:', _error);
     return false;
   }
-}
+};
